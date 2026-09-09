@@ -1,0 +1,3497 @@
+<!-- Basic + scientific operation 
+ 
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#080808">
+
+<title>UniCalculator</title>
+
+<style>
+:root {
+    --bg: #080808;
+    --panel: #111111;
+    --panel2: #181818;
+    --key: #202020;
+    --key-hover: #292929;
+    --text: #f5f5f5;
+    --muted: #858585;
+    --gold: #d4af37;
+    --gold2: #f1d365;
+    --danger: #d96b6b;
+    --border: rgba(212,175,55,.25);
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+}
+
+body {
+    min-height: 100dvh;
+    color: var(--text);
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    display: flex;
+    justify-content: center;
+
+    padding:
+        max(10px, env(safe-area-inset-top))
+        max(10px, env(safe-area-inset-right))
+        max(10px, env(safe-area-inset-bottom))
+        max(10px, env(safe-area-inset-left));
+}
+
+button {
+    font: inherit;
+}
+
+.app {
+    width: min(100%, 680px);
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 2px 3px;
+}
+
+.logo {
+    font-size: 17px;
+    font-weight: 750;
+}
+
+.logo span {
+    color: var(--gold);
+}
+
+.angle {
+    display: flex;
+    gap: 2px;
+
+    padding: 3px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+    border-radius: 999px;
+}
+
+.angle button {
+    border: 0;
+    background: transparent;
+
+    color: var(--muted);
+
+    padding: 5px 10px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.angle button.active {
+    background: var(--gold);
+    color: #080808;
+}
+
+
+/* =========================================================
+   DISPLAY
+   ========================================================= */
+
+.display {
+    min-height: 155px;
+
+    padding: 16px 18px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(212,175,55,.06),
+            transparent 55%
+        ),
+        var(--panel);
+
+    border: 1px solid var(--border);
+    border-radius: 22px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+
+    overflow: hidden;
+}
+
+.raw-expression {
+    color: var(--muted);
+
+    font-size: 13px;
+
+    min-height: 20px;
+
+    text-align: right;
+
+    white-space: nowrap;
+
+    overflow-x: auto;
+
+    scrollbar-width: none;
+}
+
+.raw-expression::-webkit-scrollbar {
+    display: none;
+}
+
+.smart-expression {
+    margin-top: 3px;
+
+    min-height: 30px;
+
+    color: var(--gold2);
+
+    text-align: right;
+
+    font-size: clamp(15px, 4vw, 20px);
+
+    white-space: nowrap;
+
+    overflow-x: auto;
+
+    scrollbar-width: none;
+}
+
+.smart-expression::-webkit-scrollbar {
+    display: none;
+}
+
+.result {
+    margin-top: 5px;
+
+    text-align: right;
+
+    font-size: clamp(38px, 10vw, 56px);
+
+    line-height: 1.05;
+
+    font-weight: 500;
+
+    letter-spacing: -.045em;
+
+    white-space: nowrap;
+
+    overflow-x: auto;
+
+    scrollbar-width: none;
+}
+
+.result::-webkit-scrollbar {
+    display: none;
+}
+
+.result.error {
+    color: var(--danger);
+    font-size: clamp(22px, 7vw, 34px);
+}
+
+
+/* =========================================================
+   SCIENTIFIC KEYS
+   ========================================================= */
+
+.scientific {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, 1fr);
+
+    gap: 7px;
+}
+
+.key {
+    min-height: 46px;
+
+    border: 1px solid rgba(255,255,255,.035);
+    border-radius: 13px;
+
+    background: var(--key);
+
+    color: var(--text);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 14px;
+    font-weight: 650;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    transition:
+        transform .07s ease,
+        background .12s ease;
+}
+
+.key:hover {
+    background: var(--key-hover);
+}
+
+.key:active {
+    transform: scale(.95);
+}
+
+.function {
+    color: var(--gold2);
+}
+
+.operator {
+    color: var(--gold2);
+}
+
+.danger {
+    color: var(--danger);
+}
+
+.equals {
+    background: var(--gold);
+    color: #080808;
+    border-color: var(--gold);
+}
+
+.equals:hover {
+    background: var(--gold2);
+}
+
+
+/* =========================================================
+   KEYPAD
+   ========================================================= */
+
+.keypad {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 8px;
+}
+
+.keypad .key {
+    min-height: 63px;
+    font-size: 21px;
+    background: #191919;
+}
+
+.keypad .zero {
+    grid-column: span 2;
+}
+
+
+/* =========================================================
+   HISTORY
+   ========================================================= */
+
+.history {
+    background: var(--panel);
+
+    border: 1px solid var(--border);
+
+    border-radius: 18px;
+
+    overflow: hidden;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 11px 14px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,.05);
+}
+
+.history-title {
+    color: var(--muted);
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: .08em;
+}
+
+.clear-history {
+    border: 0;
+    background: transparent;
+
+    color: var(--gold);
+
+    font-size: 11px;
+    font-weight: 750;
+
+    cursor: pointer;
+}
+
+.history-list {
+    max-height: 155px;
+    overflow-y: auto;
+}
+
+.history-empty {
+    padding: 15px;
+
+    text-align: center;
+
+    color: #666;
+
+    font-size: 12px;
+}
+
+.history-item {
+    padding: 9px 14px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,.045);
+
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background: rgba(255,255,255,.025);
+}
+
+.history-expression {
+    color: #777;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.history-result {
+    margin-top: 2px;
+
+    font-size: 17px;
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 700px) {
+
+    body {
+        align-items: center;
+        padding: 25px;
+    }
+
+    .keypad .key {
+        min-height: 68px;
+    }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    body {
+        padding: 7px;
+    }
+
+    .display {
+        min-height: 140px;
+        padding: 13px;
+    }
+
+    .scientific {
+        gap: 5px;
+    }
+
+    .key {
+        min-height: 42px;
+        font-size: 12px;
+    }
+
+    .keypad {
+        gap: 6px;
+    }
+
+    .keypad .key {
+        min-height: 55px;
+        font-size: 19px;
+    }
+}
+</style>
+</head>
+
+
+<body>
+
+<main class="app">
+
+
+<header class="header">
+
+    <div class="logo">
+        Uni<span>Calc</span>
+    </div>
+
+    <div class="angle">
+
+        <button
+            id="degButton"
+            class="active"
+            onclick="setAngleMode('DEG')">
+            DEG
+        </button>
+
+        <button
+            id="radButton"
+            onclick="setAngleMode('RAD')">
+            RAD
+        </button>
+
+    </div>
+
+</header>
+
+
+<!-- =======================================================
+     DISPLAY
+     ======================================================= -->
+
+<section class="display">
+
+    <!-- What the user is actually typing -->
+    <div
+        id="rawExpression"
+        class="raw-expression">
+    </div>
+
+    <!-- PEMDAS-aware visual grouping -->
+    <div
+        id="smartExpression"
+        class="smart-expression">
+    </div>
+
+    <!-- Current answer -->
+    <div
+        id="result"
+        class="result">
+        0
+    </div>
+
+</section>
+
+
+<!-- =======================================================
+     SCIENTIFIC
+     ======================================================= -->
+
+<section class="scientific">
+
+    <button
+        class="key function"
+        onclick="insertFunction('sin')">
+        sin
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('cos')">
+        cos
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('tan')">
+        tan
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('asin')">
+        sin⁻¹
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('acos')">
+        cos⁻¹
+    </button>
+
+
+    <button
+        class="key function"
+        onclick="insertFunction('atan')">
+        tan⁻¹
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('ln')">
+        ln
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('log')">
+        log
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('sqrt')">
+        √
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('abs')">
+        abs
+    </button>
+
+
+    <button
+        class="key function"
+        onclick="insertFunction('exp')">
+        eˣ
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertFunction('pow10')">
+        10ˣ
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertConstant('π')">
+        π
+    </button>
+
+    <button
+        class="key function"
+        onclick="insertConstant('e')">
+        e
+    </button>
+
+    <button
+        class="key function"
+        onclick="square()">
+        x²
+    </button>
+
+
+    <button
+        class="key function"
+        onclick="cube()">
+        x³
+    </button>
+
+    <button
+        class="key function"
+        onclick="power()">
+        xʸ
+    </button>
+
+    <button
+        class="key function"
+        onclick="factorialInput()">
+        x!
+    </button>
+
+    <button
+        class="key function"
+        onclick="reciprocal()">
+        1/x
+    </button>
+
+    <button
+        class="key function"
+        onclick="percentage()">
+        %
+    </button>
+
+</section>
+
+
+<!-- =======================================================
+     BASIC KEYPAD
+     ======================================================= -->
+
+<section class="keypad">
+
+    <button
+        class="key danger"
+        onclick="clearAll()">
+        AC
+    </button>
+
+    <button
+        class="key"
+        onclick="backspace()">
+        ⌫
+    </button>
+
+    <button
+        class="key"
+        onclick="parenthesis('(')">
+        (
+    </button>
+
+    <button
+        class="key"
+        onclick="parenthesis(')')">
+        )
+    </button>
+
+
+    <button
+        class="key"
+        onclick="digit('7')">
+        7
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('8')">
+        8
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('9')">
+        9
+    </button>
+
+    <button
+        class="key operator"
+        onclick="operator('÷')">
+        ÷
+    </button>
+
+
+    <button
+        class="key"
+        onclick="digit('4')">
+        4
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('5')">
+        5
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('6')">
+        6
+    </button>
+
+    <button
+        class="key operator"
+        onclick="operator('×')">
+        ×
+    </button>
+
+
+    <button
+        class="key"
+        onclick="digit('1')">
+        1
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('2')">
+        2
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('3')">
+        3
+    </button>
+
+    <button
+        class="key operator"
+        onclick="operator('−')">
+        −
+    </button>
+
+
+    <button
+        class="key zero"
+        onclick="digit('0')">
+        0
+    </button>
+
+    <button
+        class="key"
+        onclick="digit('.')">
+        .
+    </button>
+
+    <button
+        class="key operator"
+        onclick="operator('+')">
+        +
+    </button>
+
+
+    <button
+        class="key equals"
+        onclick="calculate()">
+        =
+    </button>
+
+</section>
+
+
+<!-- =======================================================
+     HISTORY
+     ======================================================= -->
+
+<section class="history">
+
+    <div class="history-header">
+
+        <span class="history-title">
+            HISTORY
+        </span>
+
+        <button
+            class="clear-history"
+            onclick="clearHistory()">
+            Clear
+        </button>
+
+    </div>
+
+    <div
+        id="historyList"
+        class="history-list">
+    </div>
+
+</section>
+
+
+</main>
+
+
+<script>
+
+/* ============================================================
+   SMART SCIENTIFIC CALCULATOR
+   ============================================================
+
+   IMPORTANT DESIGN:
+
+   The user edits a normal mathematical expression.
+
+   Digits belonging to the same number are ALWAYS joined.
+
+       1 → 12 → 123
+
+   Multiplication is only inferred between actual
+   mathematical values:
+
+       2π
+       2(3)
+       (2)(3)
+       3sin(30)
+
+   PEMDAS is handled by a real recursive parser.
+
+   When "=" is pressed:
+
+       expression → calculated value
+
+   The calculated value becomes the new starting entity.
+
+       2 + 3 × 4
+              ↓ =
+       14
+              ↓ + 5
+       14 + 5
+              ↓ =
+       19
+
+   ============================================================ */
+
+
+/* ============================================================
+   STATE
+   ============================================================ */
+
+let expression = "";
+
+let angleMode = "DEG";
+
+let justCalculated = false;
+
+let history = [];
+
+
+/* ============================================================
+   DOM
+   ============================================================ */
+
+const rawExpression =
+    document.getElementById("rawExpression");
+
+const smartExpression =
+    document.getElementById("smartExpression");
+
+const resultDisplay =
+    document.getElementById("result");
+
+
+/* ============================================================
+   BASIC INPUT
+   ============================================================ */
+
+function digit(value) {
+
+    /*
+     If an answer was just produced and the
+     user starts typing a digit, begin a new
+     number.
+
+         14 =
+         2
+
+     becomes:
+
+         2
+
+     not:
+
+         142
+    */
+
+    if (justCalculated) {
+
+        expression = "";
+
+        justCalculated = false;
+    }
+
+
+    /*
+     Decimal handling.
+
+     Do not allow:
+
+         2.3.4
+    */
+
+    if (value === ".") {
+
+        const current =
+            getCurrentNumber();
+
+        if (current.includes(".")) {
+            return;
+        }
+
+
+        /*
+         A decimal typed at the beginning
+         becomes 0.
+        */
+
+        if (
+            !expression ||
+            /[+\-×÷^(]$/.test(expression)
+        ) {
+            expression += "0";
+        }
+    }
+
+
+    /*
+     CRITICAL:
+
+     A digit following another digit is
+     simply part of the same number.
+
+         1 → 12 → 123
+
+     We DO NOT add multiplication here.
+    */
+
+    expression += value;
+
+    update();
+}
+
+
+/* ============================================================
+   CURRENT NUMBER
+   ============================================================ */
+
+function getCurrentNumber() {
+
+    const match =
+        expression.match(
+            /(?:^|[+\-×÷*/^(])(-?(?:\d+(?:\.\d*)?|\.\d*))$/
+        );
+
+    return match
+        ? match[1]
+        : "";
+}
+
+
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+
+function insertConstant(value) {
+
+    startEditing();
+
+
+    /*
+     If a value already exists immediately
+     before the constant, multiplication
+     is required.
+
+         2π
+         2 × π
+
+     */
+
+    if (endsInValue()) {
+        expression += "×";
+    }
+
+
+    expression += value;
+
+    update();
+}
+
+
+/* ============================================================
+   OPERATORS
+   ============================================================ */
+
+function operator(op) {
+
+    startEditing();
+
+
+    /*
+     Replace an operator rather than producing:
+
+         2 × ÷
+    */
+
+    if (
+        /[+−×÷*/^%]$/.test(expression)
+    ) {
+
+        expression =
+            expression.slice(0, -1);
+    }
+
+
+    /*
+     Unary negative is allowed at the
+     beginning or after another operator.
+
+         -2
+         3 × -2
+    */
+
+    expression += op;
+
+    update();
+}
+
+
+/* ============================================================
+   PARENTHESES
+   ============================================================ */
+
+function parenthesis(type) {
+
+    startEditing();
+
+
+    if (type === "(") {
+
+        /*
+         Value immediately followed by
+         "(" means multiplication.
+
+             2(3)
+             π(2)
+        */
+
+        if (endsInValue()) {
+            expression += "×";
+        }
+
+        expression += "(";
+
+    } else {
+
+        if (canCloseParenthesis()) {
+            expression += ")";
+        }
+    }
+
+
+    update();
+}
+
+
+function canCloseParenthesis() {
+
+    if (!expression) {
+        return false;
+    }
+
+
+    let depth = 0;
+
+    for (const c of expression) {
+
+        if (c === "(") depth++;
+        if (c === ")") depth--;
+    }
+
+
+    if (depth <= 0) {
+        return false;
+    }
+
+
+    /*
+     Don't allow:
+
+         (2+)
+         (2×)
+         ()
+    */
+
+    if (
+        /[+−×÷*/^(]$/.test(expression)
+    ) {
+        return false;
+    }
+
+
+    return true;
+}
+
+
+/* ============================================================
+   FUNCTION INPUT
+   ============================================================ */
+
+function insertFunction(name) {
+
+    startEditing();
+
+
+    /*
+     If the user has a complete expression:
+
+         2 + 3
+
+     pressing sqrt means:
+
+         √(2 + 3)
+
+     rather than:
+
+         2 + 3√(
+    */
+
+    if (isCompleteExpression()) {
+
+        expression =
+            name +
+            "(" +
+            expression +
+            ")";
+
+    } else {
+
+        if (endsInValue()) {
+            expression += "×";
+        }
+
+        expression += name + "(";
+    }
+
+
+    update();
+}
+
+
+/* ============================================================
+   POWER OPERATIONS
+   ============================================================ */
+
+function square() {
+
+    applyPower("2");
+}
+
+
+function cube() {
+
+    applyPower("3");
+}
+
+
+function power() {
+
+    startEditing();
+
+
+    if (!expression) {
+        return;
+    }
+
+
+    if (isCompleteExpression()) {
+
+        expression =
+            "(" +
+            expression +
+            ")^";
+
+    } else {
+
+        expression += "^";
+    }
+
+
+    update();
+}
+
+
+function applyPower(powerValue) {
+
+    startEditing();
+
+
+    if (!expression) {
+        return;
+    }
+
+
+    /*
+     Compound expression:
+
+         2 + 3
+
+     x² becomes:
+
+         (2 + 3)^2
+    */
+
+    if (isCompleteExpression()) {
+
+        expression =
+            "(" +
+            expression +
+            ")^" +
+            powerValue;
+
+    } else {
+
+        expression += "^" + powerValue;
+    }
+
+
+    update();
+}
+
+
+/* ============================================================
+   FACTORIAL
+   ============================================================ */
+
+function factorialInput() {
+
+    startEditing();
+
+
+    if (!expression) {
+        return;
+    }
+
+
+    if (isCompleteExpression()) {
+
+        expression =
+            "(" +
+            expression +
+            ")!";
+
+    } else {
+
+        expression += "!";
+    }
+
+
+    update();
+}
+
+
+/* ============================================================
+   RECIPROCAL
+   ============================================================ */
+
+function reciprocal() {
+
+    startEditing();
+
+
+    if (!expression) {
+        return;
+    }
+
+
+    expression =
+        "1/(" +
+        expression +
+        ")";
+
+
+    update();
+}
+
+
+/* ============================================================
+   PERCENTAGE
+   ============================================================ */
+
+function percentage() {
+
+    startEditing();
+
+
+    if (!expression) {
+        return;
+    }
+
+
+    /*
+     Percentage applies to the current
+     value/entity.
+
+         50%
+
+     */
+
+    expression += "%";
+
+    update();
+}
+
+
+/* ============================================================
+   EDITING
+   ============================================================ */
+
+function startEditing() {
+
+    if (justCalculated) {
+        justCalculated = false;
+    }
+}
+
+
+function endsInValue() {
+
+    return (
+        /[\dπe)]$/.test(expression)
+    );
+}
+
+
+/* ============================================================
+   BACKSPACE
+   ============================================================ */
+
+function backspace() {
+
+    if (justCalculated) {
+
+        expression = "";
+
+        justCalculated = false;
+
+        update();
+
+        return;
+    }
+
+
+    const functions = [
+        "pow10(",
+        "sqrt(",
+        "asin(",
+        "acos(",
+        "atan(",
+        "sin(",
+        "cos(",
+        "tan(",
+        "abs(",
+        "exp(",
+        "log(",
+        "ln("
+    ];
+
+
+    for (const fn of functions) {
+
+        if (expression.endsWith(fn)) {
+
+            expression =
+                expression.slice(
+                    0,
+                    -fn.length
+                );
+
+            update();
+
+            return;
+        }
+    }
+
+
+    expression =
+        expression.slice(0, -1);
+
+    update();
+}
+
+
+/* ============================================================
+   CLEAR
+   ============================================================ */
+
+function clearAll() {
+
+    expression = "";
+
+    justCalculated = false;
+
+    update();
+}
+
+
+/* ============================================================
+   TOKENIZER
+   ============================================================ */
+
+function tokenize(text) {
+
+    const tokens = [];
+
+    let i = 0;
+
+
+    while (i < text.length) {
+
+        const c = text[i];
+
+
+        if (/\s/.test(c)) {
+
+            i++;
+
+            continue;
+        }
+
+
+        /*
+         NUMBER
+
+         Supports:
+
+             123
+             123.45
+             .45
+             1.2e5
+             1.2e-5
+        */
+
+        if (
+            /[0-9]/.test(c) ||
+            c === "."
+        ) {
+
+            let number = "";
+
+
+            while (
+                i < text.length &&
+                /[0-9.]/.test(text[i])
+            ) {
+
+                number += text[i++];
+            }
+
+
+            if (
+                text[i] === "e" ||
+                text[i] === "E"
+            ) {
+
+                number += text[i++];
+
+
+                if (
+                    text[i] === "+" ||
+                    text[i] === "-"
+                ) {
+                    number += text[i++];
+                }
+
+
+                let exponent = "";
+
+
+                while (
+                    i < text.length &&
+                    /[0-9]/.test(text[i])
+                ) {
+
+                    exponent += text[i++];
+                }
+
+
+                if (!exponent) {
+                    throw new Error(
+                        "Invalid number"
+                    );
+                }
+
+
+                number += exponent;
+            }
+
+
+            const value =
+                Number(number);
+
+
+            if (!Number.isFinite(value)) {
+                throw new Error(
+                    "Invalid number"
+                );
+            }
+
+
+            tokens.push({
+                type: "number",
+                value
+            });
+
+            continue;
+        }
+
+
+        /*
+         CONSTANT
+        */
+
+        if (c === "π") {
+
+            tokens.push({
+                type: "constant",
+                value: "pi"
+            });
+
+            i++;
+
+            continue;
+        }
+
+
+        /*
+         IDENTIFIER
+        */
+
+        if (/[A-Za-z]/.test(c)) {
+
+            let name = "";
+
+
+            while (
+                i < text.length &&
+                /[A-Za-z]/.test(text[i])
+            ) {
+
+                name += text[i++];
+            }
+
+
+            name =
+                name.toLowerCase();
+
+
+            if (name === "pi") {
+
+                tokens.push({
+                    type: "constant",
+                    value: "pi"
+                });
+
+            } else if (name === "e") {
+
+                tokens.push({
+                    type: "constant",
+                    value: "e"
+                });
+
+            } else {
+
+                tokens.push({
+                    type: "function",
+                    value: name
+                });
+            }
+
+
+            continue;
+        }
+
+
+        /*
+         OPERATORS
+        */
+
+        if (
+            "+-−×÷*/^%!".includes(c)
+        ) {
+
+            let op = c;
+
+            if (op === "×") op = "*";
+            if (op === "÷") op = "/";
+            if (op === "−") op = "-";
+
+
+            tokens.push({
+                type: "operator",
+                value: op
+            });
+
+
+            i++;
+
+            continue;
+        }
+
+
+        /*
+         PARENTHESES
+        */
+
+        if (c === "(") {
+
+            tokens.push({
+                type: "leftParen"
+            });
+
+            i++;
+
+            continue;
+        }
+
+
+        if (c === ")") {
+
+            tokens.push({
+                type: "rightParen"
+            });
+
+            i++;
+
+            continue;
+        }
+
+
+        throw new Error(
+            "Unknown character"
+        );
+    }
+
+
+    return insertImplicitMultiplication(tokens);
+}
+
+
+/* ============================================================
+   IMPLICIT MULTIPLICATION
+   ============================================================ */
+
+function canEndValue(token) {
+
+    return (
+        token.type === "number" ||
+        token.type === "constant" ||
+        token.type === "rightParen" ||
+        (
+            token.type === "operator" &&
+            token.value === "!"
+        )
+    );
+}
+
+
+function canStartValue(token) {
+
+    return (
+        token.type === "number" ||
+        token.type === "constant" ||
+        token.type === "function" ||
+        token.type === "leftParen"
+    );
+}
+
+
+function insertImplicitMultiplication(tokens) {
+
+    const result = [];
+
+
+    for (let i = 0; i < tokens.length; i++) {
+
+        const current = tokens[i];
+
+        const previous =
+            tokens[i - 1];
+
+
+        if (
+            previous &&
+            canEndValue(previous) &&
+            canStartValue(current)
+        ) {
+
+            result.push({
+                type: "operator",
+                value: "*",
+                implicit: true
+            });
+        }
+
+
+        result.push(current);
+    }
+
+
+    return result;
+}
+
+
+/* ============================================================
+   AST
+   ============================================================ */
+
+function numberNode(value) {
+
+    return {
+        type: "number",
+        value
+    };
+}
+
+
+function constantNode(name) {
+
+    return {
+        type: "constant",
+        name
+    };
+}
+
+
+function unaryNode(operator, operand) {
+
+    return {
+        type: "unary",
+        operator,
+        operand
+    };
+}
+
+
+function binaryNode(operator, left, right) {
+
+    return {
+        type: "binary",
+        operator,
+        left,
+        right
+    };
+}
+
+
+function functionNode(name, argument) {
+
+    return {
+        type: "function",
+        name,
+        argument
+    };
+}
+
+
+function factorialNode(argument) {
+
+    return {
+        type: "factorial",
+        argument
+    };
+}
+
+
+/* ============================================================
+   PARSER
+   ============================================================ */
+
+class Parser {
+
+    constructor(tokens) {
+
+        this.tokens = tokens;
+
+        this.position = 0;
+    }
+
+
+    current() {
+
+        return this.tokens[this.position];
+    }
+
+
+    consume() {
+
+        return this.tokens[this.position++];
+    }
+
+
+    match(type, value = null) {
+
+        const token =
+            this.current();
+
+
+        if (!token) {
+            return false;
+        }
+
+
+        if (token.type !== type) {
+            return false;
+        }
+
+
+        if (
+            value !== null &&
+            token.value !== value
+        ) {
+            return false;
+        }
+
+
+        this.position++;
+
+        return true;
+    }
+
+
+    parse() {
+
+        const node =
+            this.parseAddition();
+
+
+        if (this.current()) {
+
+            throw new Error(
+                "Unexpected input"
+            );
+        }
+
+
+        return node;
+    }
+
+
+    /*
+     ADDITION
+
+         a + b
+         a - b
+    */
+
+    parseAddition() {
+
+        let node =
+            this.parseMultiplication();
+
+
+        while (true) {
+
+            const token =
+                this.current();
+
+
+            if (
+                token &&
+                token.type === "operator" &&
+                (
+                    token.value === "+" ||
+                    token.value === "-"
+                )
+            ) {
+
+                this.consume();
+
+
+                const right =
+                    this.parseMultiplication();
+
+
+                node =
+                    binaryNode(
+                        token.value,
+                        node,
+                        right
+                    );
+
+            } else {
+
+                break;
+            }
+        }
+
+
+        return node;
+    }
+
+
+    /*
+     MULTIPLICATION
+
+         a × b
+         a ÷ b
+    */
+
+    parseMultiplication() {
+
+        let node =
+            this.parseUnary();
+
+
+        while (true) {
+
+            const token =
+                this.current();
+
+
+            if (
+                token &&
+                token.type === "operator" &&
+                (
+                    token.value === "*" ||
+                    token.value === "/" 
+                )
+            ) {
+
+                this.consume();
+
+
+                const right =
+                    this.parseUnary();
+
+
+                node =
+                    binaryNode(
+                        token.value,
+                        node,
+                        right
+                    );
+
+            } else {
+
+                break;
+            }
+        }
+
+
+        return node;
+    }
+
+
+    /*
+     UNARY
+
+         -2
+         +2
+
+     Unary signs have lower precedence
+     than exponentiation.
+
+         -2² = -(2²)
+    */
+
+    parseUnary() {
+
+        const token =
+            this.current();
+
+
+        if (
+            token &&
+            token.type === "operator" &&
+            (
+                token.value === "+" ||
+                token.value === "-"
+            )
+        ) {
+
+            this.consume();
+
+
+            return unaryNode(
+                token.value,
+                this.parseUnary()
+            );
+        }
+
+
+        return this.parsePower();
+    }
+
+
+    /*
+     POWER
+
+         2^3
+         2^3^2
+
+     Right associative.
+    */
+
+    parsePower() {
+
+        let node =
+            this.parsePostfix();
+
+
+        const token =
+            this.current();
+
+
+        if (
+            token &&
+            token.type === "operator" &&
+            token.value === "^"
+        ) {
+
+            this.consume();
+
+
+            const exponent =
+                this.parseUnary();
+
+
+            node =
+                binaryNode(
+                    "^",
+                    node,
+                    exponent
+                );
+        }
+
+
+        return node;
+    }
+
+
+    /*
+     FACTORIAL / PERCENT
+    */
+
+    parsePostfix() {
+
+        let node =
+            this.parsePrimary();
+
+
+        while (
+            this.current() &&
+            this.current().type === "operator" &&
+            (
+                this.current().value === "!" ||
+                this.current().value === "%"
+            )
+        ) {
+
+            const operator =
+                this.consume().value;
+
+
+            if (operator === "!") {
+
+                node =
+                    factorialNode(node);
+
+            } else {
+
+                node =
+                    unaryNode(
+                        "percent",
+                        node
+                    );
+            }
+        }
+
+
+        return node;
+    }
+
+
+    /*
+     PRIMARY
+    */
+
+    parsePrimary() {
+
+        const token =
+            this.current();
+
+
+        if (!token) {
+
+            throw new Error(
+                "Incomplete expression"
+            );
+        }
+
+
+        /*
+         NUMBER
+        */
+
+        if (token.type === "number") {
+
+            this.consume();
+
+            return numberNode(
+                token.value
+            );
+        }
+
+
+        /*
+         CONSTANT
+        */
+
+        if (token.type === "constant") {
+
+            this.consume();
+
+            return constantNode(
+                token.value
+            );
+        }
+
+
+        /*
+         FUNCTION
+        */
+
+        if (token.type === "function") {
+
+            this.consume();
+
+
+            const name =
+                token.value;
+
+
+            if (
+                !this.match("leftParen")
+            ) {
+
+                throw new Error(
+                    "Function requires value"
+                );
+            }
+
+
+            const argument =
+                this.parseAddition();
+
+
+            if (
+                !this.match("rightParen")
+            ) {
+
+                throw new Error(
+                    "Missing )"
+                );
+            }
+
+
+            return functionNode(
+                name,
+                argument
+            );
+        }
+
+
+        /*
+         PARENTHESES
+        */
+
+        if (
+            token.type === "leftParen"
+        ) {
+
+            this.consume();
+
+
+            const node =
+                this.parseAddition();
+
+
+            if (
+                !this.match("rightParen")
+            ) {
+
+                throw new Error(
+                    "Missing )"
+                );
+            }
+
+
+            return node;
+        }
+
+
+        throw new Error(
+            "Unexpected input"
+        );
+    }
+}
+
+
+/* ============================================================
+   EVALUATOR
+   ============================================================ */
+
+function evaluate(node) {
+
+    switch (node.type) {
+
+        case "number":
+
+            return node.value;
+
+
+        case "constant":
+
+            if (node.name === "pi") {
+                return Math.PI;
+            }
+
+            if (node.name === "e") {
+                return Math.E;
+            }
+
+            throw new Error(
+                "Unknown constant"
+            );
+
+
+        case "unary": {
+
+            const value =
+                evaluate(node.operand);
+
+
+            if (node.operator === "+") {
+                return value;
+            }
+
+
+            if (node.operator === "-") {
+                return -value;
+            }
+
+
+            if (node.operator === "percent") {
+                return value / 100;
+            }
+
+
+            throw new Error(
+                "Unknown unary operator"
+            );
+        }
+
+
+        case "binary": {
+
+            const left =
+                evaluate(node.left);
+
+            const right =
+                evaluate(node.right);
+
+
+            let result;
+
+
+            switch (node.operator) {
+
+                case "+":
+
+                    result =
+                        left + right;
+
+                    break;
+
+
+                case "-":
+
+                    result =
+                        left - right;
+
+                    break;
+
+
+                case "*":
+
+                    result =
+                        left * right;
+
+                    break;
+
+
+                case "/":
+
+                    if (right === 0) {
+
+                        throw new Error(
+                            "Cannot divide by zero"
+                        );
+                    }
+
+                    result =
+                        left / right;
+
+                    break;
+
+
+                case "^":
+
+                    result =
+                        Math.pow(
+                            left,
+                            right
+                        );
+
+                    break;
+
+
+                default:
+
+                    throw new Error(
+                        "Unknown operator"
+                    );
+            }
+
+
+            if (!Number.isFinite(result)) {
+
+                throw new Error(
+                    "Math error"
+                );
+            }
+
+
+            return result;
+        }
+
+
+        case "factorial":
+
+            return factorial(
+                evaluate(node.argument)
+            );
+
+
+        case "function":
+
+            return evaluateFunction(
+                node.name,
+                evaluate(node.argument)
+            );
+
+
+        default:
+
+            throw new Error(
+                "Invalid expression"
+            );
+    }
+}
+
+
+/* ============================================================
+   SCIENTIFIC FUNCTIONS
+   ============================================================ */
+
+function evaluateFunction(name, x) {
+
+    switch (name) {
+
+        case "sin":
+            return Math.sin(
+                radians(x)
+            );
+
+        case "cos":
+            return Math.cos(
+                radians(x)
+            );
+
+        case "tan":
+            return Math.tan(
+                radians(x)
+            );
+
+
+        case "asin":
+            return degreesOrRadians(
+                Math.asin(x)
+            );
+
+        case "acos":
+            return degreesOrRadians(
+                Math.acos(x)
+            );
+
+        case "atan":
+            return degreesOrRadians(
+                Math.atan(x)
+            );
+
+
+        case "ln":
+
+            if (x <= 0) {
+
+                throw new Error(
+                    "ln requires x > 0"
+                );
+            }
+
+            return Math.log(x);
+
+
+        case "log":
+
+            if (x <= 0) {
+
+                throw new Error(
+                    "log requires x > 0"
+                );
+            }
+
+            return Math.log10(x);
+
+
+        case "sqrt":
+
+            if (x < 0) {
+
+                throw new Error(
+                    "√ requires x ≥ 0"
+                );
+            }
+
+            return Math.sqrt(x);
+
+
+        case "abs":
+
+            return Math.abs(x);
+
+
+        case "exp":
+
+            return Math.exp(x);
+
+
+        case "pow10":
+
+            return Math.pow(10, x);
+
+
+        default:
+
+            throw new Error(
+                "Unknown function: " + name
+            );
+    }
+}
+
+
+function factorial(n) {
+
+    if (
+        !Number.isFinite(n) ||
+        n < 0 ||
+        !Number.isInteger(n)
+    ) {
+
+        throw new Error(
+            "Factorial requires a non-negative integer"
+        );
+    }
+
+
+    if (n > 170) {
+
+        throw new Error(
+            "Number too large"
+        );
+    }
+
+
+    let result = 1;
+
+
+    for (
+        let i = 2;
+        i <= n;
+        i++
+    ) {
+
+        result *= i;
+    }
+
+
+    return result;
+}
+
+
+/* ============================================================
+   ANGLES
+   ============================================================ */
+
+function radians(x) {
+
+    return angleMode === "DEG"
+        ? x * Math.PI / 180
+        : x;
+}
+
+
+function degreesOrRadians(x) {
+
+    return angleMode === "DEG"
+        ? x * 180 / Math.PI
+        : x;
+}
+
+
+function setAngleMode(mode) {
+
+    angleMode = mode;
+
+
+    document
+        .getElementById("degButton")
+        .classList.toggle(
+            "active",
+            mode === "DEG"
+        );
+
+
+    document
+        .getElementById("radButton")
+        .classList.toggle(
+            "active",
+            mode === "RAD"
+        );
+
+
+    update();
+}
+
+
+/* ============================================================
+   BUILD TREE
+   ============================================================ */
+
+function buildTree(text) {
+
+    const tokens =
+        tokenize(text);
+
+
+    const parser =
+        new Parser(tokens);
+
+
+    return parser.parse();
+}
+
+
+function isCompleteExpression() {
+
+    if (!expression) {
+        return false;
+    }
+
+
+    if (
+        /[+−×÷*/^(]$/.test(expression)
+    ) {
+        return false;
+    }
+
+
+    try {
+
+        buildTree(expression);
+
+        return true;
+
+    } catch {
+
+        return false;
+    }
+}
+
+
+/* ============================================================
+   PEMDAS VISUALIZATION
+   ============================================================
+
+   The user sees the actual mathematical
+   grouping.
+
+       2 + 3 × 4
+
+   becomes visually:
+
+       2 + (3 × 4)
+
+   while the raw expression remains:
+
+       2 + 3 × 4
+
+   This lets the user understand exactly
+   what the calculator is doing.
+   ============================================================ */
+
+const precedence = {
+    "+": 1,
+    "-": 1,
+    "*": 2,
+    "/": 2,
+    "^": 4,
+    unary: 3,
+    factorial: 5,
+    function: 6,
+    number: 7,
+    constant: 7
+};
+
+
+function nodePrecedence(node) {
+
+    if (node.type === "binary") {
+        return precedence[node.operator];
+    }
+
+    return precedence[node.type];
+}
+
+
+function smartText(node, parent = 0) {
+
+    if (node.type === "number") {
+
+        return format(node.value);
+    }
+
+
+    if (node.type === "constant") {
+
+        return node.name === "pi"
+            ? "π"
+            : "e";
+    }
+
+
+    if (node.type === "function") {
+
+        return (
+            functionSymbol(node.name) +
+            "(" +
+            smartText(node.argument) +
+            ")"
+        );
+    }
+
+
+    if (node.type === "factorial") {
+
+        let argument =
+            smartText(
+                node.argument,
+                precedence.factorial
+            );
+
+
+        if (
+            nodePrecedence(node.argument) <
+            precedence.factorial
+        ) {
+
+            argument =
+                "(" +
+                argument +
+                ")";
+        }
+
+
+        return argument + "!";
+    }
+
+
+    if (node.type === "unary") {
+
+        let operand;
+
+
+        /*
+         Important:
+
+             -2²
+
+         must visually become:
+
+             -(2²)
+
+         rather than:
+
+             (-2)²
+        */
+
+        if (
+            node.operand.type === "binary" &&
+            node.operand.operator === "^"
+        ) {
+
+            operand =
+                "(" +
+                smartText(node.operand) +
+                ")";
+
+        } else {
+
+            operand =
+                smartText(
+                    node.operand,
+                    precedence.unary
+                );
+        }
+
+
+        return (
+            node.operator === "percent"
+                ? operand + "%"
+                : node.operator + operand
+        );
+    }
+
+
+    if (node.type === "binary") {
+
+        const p =
+            precedence[node.operator];
+
+
+        let left =
+            smartText(
+                node.left,
+                p
+            );
+
+
+        let right =
+            smartText(
+                node.right,
+                p
+            );
+
+
+        /*
+         Parenthesize the left side
+         when required by precedence.
+        */
+
+        if (
+            nodePrecedence(node.left) < p
+        ) {
+
+            left =
+                "(" +
+                left +
+                ")";
+        }
+
+
+        /*
+         Right-side grouping.
+
+         a - (b + c)
+        */
+
+        if (
+            node.operator === "-" &&
+            node.right.type === "binary" &&
+            (
+                node.right.operator === "+" ||
+                node.right.operator === "-"
+            )
+        ) {
+
+            right =
+                "(" +
+                right +
+                ")";
+        }
+
+
+        /*
+         a / (b × c)
+        */
+
+        if (
+            node.operator === "/" &&
+            node.right.type === "binary" &&
+            (
+                node.right.operator === "*" ||
+                node.right.operator === "/"
+            )
+        ) {
+
+            right =
+                "(" +
+                right +
+                ")";
+        }
+
+
+        /*
+         Exponent compound expressions.
+        */
+
+        if (
+            node.operator === "^" &&
+            node.right.type === "binary"
+        ) {
+
+            right =
+                "(" +
+                right +
+                ")";
+        }
+
+
+        let symbol;
+
+
+        switch (node.operator) {
+
+            case "*":
+                symbol = " × ";
+                break;
+
+            case "/":
+                symbol = " ÷ ";
+                break;
+
+            case "+":
+                symbol = " + ";
+                break;
+
+            case "-":
+                symbol = " − ";
+                break;
+
+            case "^":
+                symbol = "^";
+                break;
+
+            default:
+                symbol = node.operator;
+        }
+
+
+        let result =
+            left +
+            symbol +
+            right;
+
+
+        /*
+         Parenthesize the complete expression
+         when it is being used inside a higher
+         precedence operation.
+        */
+
+        if (p < parent) {
+
+            result =
+                "(" +
+                result +
+                ")";
+        }
+
+
+        return result;
+    }
+
+
+    return "?";
+}
+
+
+function functionSymbol(name) {
+
+    const symbols = {
+
+        sqrt: "√",
+
+        pow10: "10^",
+
+        exp: "e^",
+
+        sin: "sin",
+
+        cos: "cos",
+
+        tan: "tan",
+
+        asin: "sin⁻¹",
+
+        acos: "cos⁻¹",
+
+        atan: "tan⁻¹",
+
+        ln: "ln",
+
+        log: "log",
+
+        abs: "abs"
+    };
+
+
+    return symbols[name] || name;
+}
+
+
+/* ============================================================
+   DISPLAY UPDATE
+   ============================================================ */
+
+function update() {
+
+    rawExpression.textContent =
+        expression;
+
+
+    if (!expression) {
+
+        smartExpression.textContent =
+            "";
+
+        resultDisplay.textContent =
+            "0";
+
+        resultDisplay.classList.remove(
+            "error"
+        );
+
+        return;
+    }
+
+
+    /*
+     Try to build the real mathematical tree.
+    */
+
+    try {
+
+        const tree =
+            buildTree(expression);
+
+
+        /*
+         Display the actual PEMDAS grouping.
+        */
+
+        smartExpression.textContent =
+            smartText(tree);
+
+
+        /*
+         Display the live answer.
+        */
+
+        const value =
+            evaluate(tree);
+
+
+        resultDisplay.textContent =
+            format(value);
+
+        resultDisplay.classList.remove(
+            "error"
+        );
+
+    }
+    catch {
+
+        /*
+         An incomplete expression is normal
+         while typing.
+
+         For example:
+
+             2 +
+             sqrt(
+             2 ×
+
+         Therefore do not show an error
+         immediately.
+        */
+
+        smartExpression.textContent =
+            "";
+
+
+        resultDisplay.textContent =
+            "…";
+
+
+        resultDisplay.classList.remove(
+            "error"
+        );
+    }
+}
+
+
+/* ============================================================
+   ENTER / EQUALS
+   ============================================================ */
+
+function calculate() {
+
+    if (!expression) {
+        return;
+    }
+
+
+    try {
+
+        const tree =
+            buildTree(expression);
+
+
+        const value =
+            evaluate(tree);
+
+
+        const formatted =
+            format(value);
+
+
+        /*
+         THIS IS THE IMPORTANT NEW BEHAVIOR.
+
+         The mathematical expression is now
+         replaced by its result.
+
+             2 + 3 × 4
+                  ↓
+             14
+        */
+
+        const original =
+            smartText(tree);
+
+
+        history.unshift({
+            expression: original,
+            result: formatted
+        });
+
+
+        history =
+            history.slice(0, 20);
+
+
+        renderHistory();
+
+
+        expression =
+            numericExpression(value);
+
+
+        justCalculated = true;
+
+
+        /*
+         The raw expression now shows:
+
+             14
+
+         The PEMDAS grouping disappears because
+         the expression has become a new entity.
+        */
+
+        rawExpression.textContent =
+            formatted;
+
+        smartExpression.textContent =
+            "";
+
+        resultDisplay.textContent =
+            formatted;
+
+        resultDisplay.classList.remove(
+            "error"
+        );
+
+    }
+    catch (error) {
+
+        resultDisplay.textContent =
+            error.message || "Error";
+
+        resultDisplay.classList.add(
+            "error"
+        );
+    }
+}
+
+
+/*
+ Convert a numeric answer back into
+ a calculator-safe expression.
+
+ Avoids floating point display artifacts.
+*/
+
+function numericExpression(value) {
+
+    return format(value);
+}
+
+
+/* ============================================================
+   FORMAT
+   ============================================================ */
+
+function format(value) {
+
+    if (!Number.isFinite(value)) {
+
+        throw new Error(
+            "Math error"
+        );
+    }
+
+
+    if (
+        Math.abs(value) < 1e-12
+    ) {
+
+        value = 0;
+    }
+
+
+    const abs =
+        Math.abs(value);
+
+
+    /*
+     Scientific notation for very
+     large / very small numbers.
+    */
+
+    if (
+        abs !== 0 &&
+        (
+            abs >= 1e12 ||
+            abs < 1e-9
+        )
+    ) {
+
+        return value
+            .toExponential(10)
+            .replace(
+                /\.?0+e/,
+                "e"
+            );
+    }
+
+
+    /*
+     Twelve significant digits provides
+     a good calculator-style balance.
+    */
+
+    return Number(
+        value.toPrecision(12)
+    ).toString();
+}
+
+
+/* ============================================================
+   HISTORY
+   ============================================================ */
+
+function renderHistory() {
+
+    const list =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    if (!history.length) {
+
+        list.innerHTML =
+            `
+            <div class="history-empty">
+                No calculations yet
+            </div>
+            `;
+
+        return;
+    }
+
+
+    list.innerHTML =
+        history
+            .map(
+                (item, index) => `
+                    <div
+                        class="history-item"
+                        onclick="restoreHistory(${index})">
+
+                        <div class="history-expression">
+                            ${escapeHTML(item.expression)}
+                        </div>
+
+                        <div class="history-result">
+                            = ${escapeHTML(item.result)}
+                        </div>
+
+                    </div>
+                `
+            )
+            .join("");
+}
+
+
+function restoreHistory(index) {
+
+    expression =
+        history[index].result;
+
+
+    justCalculated = true;
+
+
+    update();
+}
+
+
+function clearHistory() {
+
+    history = [];
+
+    renderHistory();
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* ============================================================
+   KEYBOARD
+   ============================================================ */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const key =
+            event.key;
+
+
+        /*
+         Digits
+        */
+
+        if (
+            /^[0-9]$/.test(key)
+        ) {
+
+            digit(key);
+
+            return;
+        }
+
+
+        /*
+         Decimal
+        */
+
+        if (key === ".") {
+
+            digit(".");
+
+            return;
+        }
+
+
+        /*
+         Operators
+        */
+
+        if (
+            [
+                "+",
+                "-",
+                "*",
+                "/",
+                "^",
+                "%"
+            ].includes(key)
+        ) {
+
+            operator(
+                key === "*"
+                    ? "×"
+                    : key === "/"
+                        ? "÷"
+                        : key
+            );
+
+            return;
+        }
+
+
+        /*
+         Parentheses
+        */
+
+        if (key === "(") {
+
+            parenthesis("(");
+
+            return;
+        }
+
+
+        if (key === ")") {
+
+            parenthesis(")");
+
+            return;
+        }
+
+
+        /*
+         Equals
+        */
+
+        if (
+            key === "Enter" ||
+            key === "="
+        ) {
+
+            event.preventDefault();
+
+            calculate();
+
+            return;
+        }
+
+
+        /*
+         Backspace
+        */
+
+        if (key === "Backspace") {
+
+            event.preventDefault();
+
+            backspace();
+
+            return;
+        }
+
+
+        /*
+         Clear
+        */
+
+        if (
+            key === "Escape" ||
+            key === "Delete"
+        ) {
+
+            clearAll();
+
+            return;
+        }
+
+
+        /*
+         Constants
+        */
+
+        if (
+            key.toLowerCase() === "p"
+        ) {
+
+            insertConstant("π");
+
+            return;
+        }
+
+
+        if (
+            key.toLowerCase() === "e"
+        ) {
+
+            insertConstant("e");
+
+            return;
+        }
+
+
+        /*
+         Function shortcuts
+        */
+
+        const functions = {
+
+            s: "sin",
+
+            c: "cos",
+
+            t: "tan",
+
+            l: "ln"
+        };
+
+
+        const lower =
+            key.toLowerCase();
+
+
+        if (functions[lower]) {
+
+            insertFunction(
+                functions[lower]
+            );
+        }
+    }
+);
+
+
+/* ============================================================
+   INITIALIZE
+   ============================================================ */
+
+renderHistory();
+
+update();
+
+</script>
+
+</body>
+</html>
